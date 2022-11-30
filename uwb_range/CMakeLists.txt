@@ -21,6 +21,13 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
 )
 
+find_package(Protobuf REQUIRED)
+include_directories(${Protobuf_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS msg.proto)
+
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -140,7 +147,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node src/uwb_range_node.cpp)
+add_executable(${PROJECT_NAME}_node src/uwb_range_node.cpp ${PROTO_SRCS} ${PROTO_HDRS})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -155,6 +162,7 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
+  ${Protobuf_LIBRARIES}
 )
 
 #############

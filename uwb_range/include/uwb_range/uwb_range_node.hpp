@@ -31,11 +31,19 @@ namespace uwb {
          */
             ros::Subscriber baca_read;
 
+        /**
+         * Timers
+         */
+
+            ros::Timer baca_timer;
+
         /** 
          * Callbacks
          */
 
-        void baca_read_cb(const mrs_msgs::BacaProtocol msg);
+        void baca_read_cb(const mrs_msgs::BacaProtocol serial_msg);
+
+        void baca_timer_cb(const ros::TimerEvent&);
 
     };
 }

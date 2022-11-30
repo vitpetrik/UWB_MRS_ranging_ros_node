@@ -12,7 +12,7 @@
 <launch>
   <arg name="UAV_NAME" default="$(optenv UAV_NAME uav)" />
   <arg name="name" default="_uwb" />
-  <arg name="portname" default="/dev/qorvo" />
+  <arg name="portname" default="/dev/ttyACM0" />
   <arg name="profiler" default="$(optenv PROFILER false)" />
 
   <group ns="$(arg UAV_NAME)/uwb_range">
@@ -41,7 +41,7 @@
 
     <node name="uwb_range_node" pkg="uwb_range" type="uwb_range_node" output="screen" respawn="true">
       <remap from="~baca_out" to="/$(arg UAV_NAME)/uwb_range/serial_uwb/send_message" />
-      <remap from="/$(arg UAV_NAME)/uwb_range/serial_uwb/received_message" to="~baca_in"/>
+      <remap from="~baca_in" to="/$(arg UAV_NAME)/uwb_range/serial_uwb/received_message"/>
     </node>
   </group>
 
