@@ -118,7 +118,7 @@ protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS msg.proto)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include include/uwb_range
+  INCLUDE_DIRS include
   CATKIN_DEPENDS mrs_msgs mrs_serial roscpp std_msgs
   LIBRARIES uwb_range
 )
@@ -130,7 +130,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  include include/uwb_range
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -147,7 +147,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node src/uwb_range_node.cpp ${PROTO_SRCS} ${PROTO_HDRS})
+add_executable(${PROJECT_NAME}_node src/uwb_range_node.cpp src/protocol.cpp ${PROTO_SRCS} ${PROTO_HDRS})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
