@@ -25,6 +25,7 @@ namespace uwb {
          * Publisher definitions
          */
             ros::Publisher baca_write;
+            ros::Publisher range_out;
 
         /** 
          * Subscribers definitions

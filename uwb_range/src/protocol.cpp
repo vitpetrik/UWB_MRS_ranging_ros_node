@@ -32,8 +32,9 @@ void serialize_ros(const struct ros_msg_t *msg, mrs_msgs::BacaProtocol &baca)
                             msg->data.id_msg.id,
                             msg->data.id_msg.id + sizeof(msg->data.id_msg.id));
         break;
-
+    case RANGING_RESULT:
     default:
+        // nothing to do here
         break;
     }
 }
