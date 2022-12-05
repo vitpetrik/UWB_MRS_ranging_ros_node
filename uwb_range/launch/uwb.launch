@@ -15,7 +15,7 @@
   <arg name="portname" default="/dev/ttyACM0" />
   <arg name="profiler" default="$(optenv PROFILER false)" />
 
-  <group ns="$(arg UAV_NAME)/uwb_range">
+  <group ns="$(arg UAV_NAME)">
 
     <!-- launch the node -->
     <node pkg="nodelet" type="nodelet" name="serial_uwb" args="standalone baca_protocol/BacaProtocol" respawn="true" output="screen">
@@ -39,9 +39,9 @@
 
     </node>
 
-    <node name="uwb_range_node" pkg="uwb_range" type="uwb_range_node" output="screen" respawn="true">
-      <remap from="~baca_out" to="/$(arg UAV_NAME)/uwb_range/serial_uwb/send_message" />
-      <remap from="~baca_in" to="/$(arg UAV_NAME)/uwb_range/serial_uwb/received_message"/>
+    <node name="uwb_range" pkg="uwb_range" type="uwb_range_node" output="screen" respawn="true">
+      <remap from="~baca_out" to="/$(arg UAV_NAME)/serial_uwb/send_message" />
+      <remap from="~baca_in" to="/$(arg UAV_NAME)/serial_uwb/received_message"/>
     </node>
   </group>
 
