@@ -13,13 +13,27 @@
 #include <ros/package.h>
 #include <mrs_msgs/BacaProtocol.h>
 
+#include "protocol.h"
+
 namespace uwb {
     class UwbRange {
         public:
             UwbRange(ros::NodeHandle nh);
             ~UwbRange();
 
+        /**
+         * Methods
+        */
+
+        void reset();
+
         private:
+
+        /**
+         * Variables
+        */
+            ros::NodeHandle nh;
+            int preprocessing;
 
         /** 
          * Publisher definitions
@@ -36,15 +50,49 @@ namespace uwb {
          * Timers
          */
 
-            ros::Timer baca_timer;
+            ros::Timer beacon_timer;
+
+        /**
+         * Methods
+        */
+
+       /**
+        * @brief Deserialize and handle anchor message type
+        * 
+        * @param uwb_data  pointer to uwb_data_msg_t
+        */
+        void handle_anchor_msg(struct uwb_data_msg_t &uwb_data);
+
+       /**
+        * @brief Deserialize and handle ros message type
+        * 
+        * @param uwb_data  pointer to uwb_data_msg_t
+        */
+        void handle_ros_msg(struct uwb_data_msg_t &uwb_data);
+
+        /**
+         * @brief Send request message to UWB
+         * 
+         * @param target_mac L2 address of target
+         * @param preprocessing preprocessing type
+         */
+        void request_ranging(uint16_t target_mac, int preprocessing);
 
         /** 
          * Callbacks
          */
 
+        /**
+         * @brief Receive message from baca node
+         * 
+         * @param serial_msg received message
+         */
         void baca_read_cb(const mrs_msgs::BacaProtocol serial_msg);
 
-        void baca_timer_cb(const ros::TimerEvent&);
-
+        /**
+         * @brief Peridocally send beacon frame
+         * 
+         */
+        void beacon_timer_cb(const ros::TimerEvent&);
     };
 }

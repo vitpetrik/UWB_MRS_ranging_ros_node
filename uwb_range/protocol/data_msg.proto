@@ -3,8 +3,6 @@
 
 syntax = "proto3";
 
-package beacon;
-
 message gps_t {
     double LONG = 1;
     double LAT = 2; 
