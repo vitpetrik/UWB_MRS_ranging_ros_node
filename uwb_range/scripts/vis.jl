@@ -12,6 +12,7 @@ using Infiltrator
 using Dates
 using PlotThemes
 using DataFrames
+using DSP
 
 Plots.theme(:vibrant, fmt = :PDF)
 
@@ -21,29 +22,22 @@ using .mrs_msgs.msg
 
 data = Dict{String,DataFrame}()
 
-START_TIME = datetime2unix(now())
+global START_TIME::Float64 = NaN
 
 function update_plots()
     histograms = []
 
     l = @layout [a{0.6h} ; b{0.2h}; c{0.2h}]
 
-    begin_time = []
-    for (key, value) in data
-        push!(begin_time, min(value.timestamp ...))
-    end
-
-    START_TIME = min(begin_time...)
-
     distances = plot(
         minorgrid=true, 
         title="Range", 
         fontfamily="Computer Modern",
-        titlefontsize=8,
+        titlefontsize=12,
         label="",
         xguide = "m",
         legend_position=:topleft,
-        guidefontsize=6,
+        guidefontsize=10,
         color_palette=:lighttest
     )
 
@@ -51,19 +45,19 @@ function update_plots()
         minorgrid=true, 
         title="Range in time", 
         fontfamily="Computer Modern",
-        titlefontsize=8,
+        titlefontsize=12,
         label="",
         xguide = "time [s]",
-        guidefontsize=6,
+        guidefontsize=10,
         legend_position=:topleft,
-        color_palette=:lighttest
+        color_palette=:lighttest,
     )
 
     for (key, value) in data
-        axis = stephist(last(value, 100).range, bins=11, normalize=:pdf, fill=true, fillalpha=0.5, label="", color=:red)
+        axis = stephist(last(value, 500).range, bins=11, normalize=:pdf, fill=true, fillalpha=0.5, label="", color=:red)
         if (size(value)[1] > 2)
-            m = mean(last(value, 100).range)
-            s = std(last(value, 100).range)
+            m = mean(last(value, 500).range)
+            s = std(last(value, 500).range)
 
             d = Normal(m, s)
             plot!(axis, d, 
@@ -76,18 +70,15 @@ function update_plots()
             legend_title_font_pointsize=6,
             legend_position=:topright,
             fontfamily="Computer Modern",
-            titlefontsize=8,
+            titlefontsize=12,
             label="",
-            guidefontsize=6,
+            guidefontsize=10,
             xguide = "m")
             plot!(distances, d, label=key, linewidth=2)
         end
         push!(histograms, axis)
-        plot!(time_plot, value.timestamp .- START_TIME, value.range, label=key)
+        plot!(time_plot, value.timestamp, value.range, label=key)
     end
-
-    xlimits = xlims(time_plot)
-    plot!(time_plot, xlims=(max(xlimits[1], xlimits[2]-60), xlimits[2]))
 
     xlimits = xlims(distances)
     plot!(distances, xlims=(0, max(10, xlimits[2])))
@@ -98,7 +89,19 @@ function update_plots()
 end
 
 function callback(msg::RangeWithVar)
-    time_stamp = (convert(Float64, msg.stamp.secs) + msg.stamp.nsecs*1e-9)
+    time_stamp::Float64 = (convert(Float64, msg.stamp.secs) + msg.stamp.nsecs*1e-9)
+    global START_TIME
+
+    if ( isnan(START_TIME) || time_stamp < START_TIME)
+        START_TIME = time_stamp
+    end
+
+    if (msg.range < 0)
+        return
+    end
+
+    time_stamp = time_stamp - START_TIME
+
     @printf "[%.3f] Range %.2f m from %s\n\r" time_stamp msg.range msg.uav_name
 
     if !haskey(data, msg.uav_name)
@@ -106,6 +109,7 @@ function callback(msg::RangeWithVar)
     end
 
     push!(data[msg.uav_name], [time_stamp msg.range msg.variance])
+    filter!(row -> row.timestamp > time_stamp - 20, data[msg.uav_name])
 end
 
 function main()
@@ -114,14 +118,9 @@ function main()
     init_node("rosjl_example")
     sub = Subscriber{RangeWithVar}("/uav/uwb_range/range_out", callback)
 
-    t = Timer((t) -> update_plots(), 1; interval=1/60) 
+    t = Timer((t) -> update_plots(), 1; interval=1/25) 
 
     spin()
 end
 
-try
-    main()
-catch err
-    @printf "Fail\n"
-    rethrow()
-end
+main()
