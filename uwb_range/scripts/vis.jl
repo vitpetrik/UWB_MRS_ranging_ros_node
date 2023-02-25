@@ -16,11 +16,11 @@ using DSP
 
 Plots.theme(:vibrant, fmt = :PDF)
 
-@rosimport mrs_msgs.msg:RangeWithVar
+@rosimport mrs_msgs.msg:RangeWithCovarianceArrayStamped
 rostypegen()
 using .mrs_msgs.msg
 
-data = Dict{String,DataFrame}()
+data = Dict{UInt64,DataFrame}()
 
 global START_TIME::Float64 = NaN
 
@@ -88,35 +88,37 @@ function update_plots()
     display(pl)
 end
 
-function callback(msg::RangeWithVar)
-    time_stamp::Float64 = (convert(Float64, msg.stamp.secs) + msg.stamp.nsecs*1e-9)
+function callback(msg::RangeWithCovarianceArrayStamped)
+    time_stamp::Float64 = (convert(Float64, msg.header.stamp.secs) + msg.header.stamp.nsecs*1e-9)
     global START_TIME
 
     if ( isnan(START_TIME) || time_stamp < START_TIME)
         START_TIME = time_stamp
     end
 
-    if (msg.range < 0)
-        return
-    end
-
     time_stamp = time_stamp - START_TIME
 
-    @printf "[%.3f] Range %.2f m from %s\n\r" time_stamp msg.range msg.uav_name
+    for measurement in msg.ranges
+        if (measurement.range.range < 0)
+            return
+        end
 
-    if !haskey(data, msg.uav_name)
-        data[msg.uav_name] = DataFrame(timestamp = Float64[], range = Float64[], var = Float64[])
+        @printf "[%.3f] Range %.2f m from 0x%X\n\r" time_stamp measurement.range.range measurement.id
+    
+        if !haskey(data, measurement.id)
+            data[measurement.id] = DataFrame(timestamp = Float64[], range = Float64[], var = Float64[])
+        end
+    
+        push!(data[measurement.id], [time_stamp measurement.range.range measurement.variance])
+        filter!(row -> row.timestamp > time_stamp - 20, data[measurement.id])
     end
-
-    push!(data[msg.uav_name], [time_stamp msg.range msg.variance])
-    filter!(row -> row.timestamp > time_stamp - 20, data[msg.uav_name])
 end
 
 function main()
     @printf "Julia visualizer\n\r"
 
     init_node("rosjl_example")
-    sub = Subscriber{RangeWithVar}("/uav/uwb_range/range_out", callback)
+    sub = Subscriber{RangeWithCovarianceArrayStamped}("/uav1/uwb_range/distance", callback)
 
     t = Timer((t) -> update_plots(), 1; interval=1/25) 
 

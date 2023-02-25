@@ -27,14 +27,19 @@
 geometry_msgs::Point pose1;
 geometry_msgs::Point pose2;
 
+bool first_pos = false;
+bool second_pos = false;
+
 void cb_1(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
 {
+    first_pos = true;
     pose1 = msg->pose.pose.position;
     return;
 }
 
 void cb_2(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
 {
+    second_pos = true;
     pose2 = msg->pose.pose.position;
     return;
 }
@@ -60,6 +65,12 @@ int main(int argc, char **argv)
 
     while (ros::ok())
     {
+        if (not first_pos or not second_pos)
+        {
+            ros::spinOnce();
+            loop_rate.sleep();
+            continue;
+        }
 
         double dist = sqrt(pow((pose1.x - pose2.x), 2) + 
                             pow((pose1.y - pose2.y), 2) + 

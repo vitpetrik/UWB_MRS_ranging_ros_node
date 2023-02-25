@@ -12,40 +12,11 @@
 <launch>
   <arg name="UAV_NAME" default="$(optenv UAV_NAME uav)" />
   <arg name="name" default="_uwb" />
-  <arg name="portname" default="/dev/ttyACM0" />
   <arg name="profiler" default="$(optenv PROFILER false)" />
   <arg name="preprocessing" default="1" />
 
   <group ns="$(arg UAV_NAME)">
-
-    <!-- launch the node -->
-    <node pkg="nodelet" type="nodelet" name="serial_uwb" args="standalone baca_protocol/BacaProtocol" respawn="true" output="screen">
-      <param name="uav_name" type="string" value="$(arg UAV_NAME)"/>
-
-      <rosparam file="$(find mrs_serial)/config/mrs_serial.yaml" />
-
-      <param name="enable_profiler" type="bool" value="$(arg profiler)" />
-      <param name="portname" value="$(arg portname)"/>
-      <param name="use_timeout" value="true"/>
-
-      <!-- Publishers -->
-      <remap from="~range" to="~" />
-      <remap from="~range_up" to="~" />
-      <remap from="~profiler" to="profiler" />
-      <remap from="~baca_protocol_out" to="~received_message" />
-
-        <!-- Subscribers -->
-      <remap from="~baca_protocol_in" to="~send_message" />
-      <remap from="~raw_in" to="~send_raw_message" />
-
-    </node>
-
-    <node name="uwb_range" pkg="uwb_range" type="uwb_range_node" output="screen" respawn="true">
-      <remap from="~baca_out" to="/$(arg UAV_NAME)/serial_uwb/send_message" />
-      <remap from="~baca_in" to="/$(arg UAV_NAME)/serial_uwb/received_message"/>
-
-      <param name="preprocessing" type="int" value="$(arg preprocessing)" />
-      <param name="uav_name" type="string" value="$(arg UAV_NAME)" />
+    <node name="uwb_range" pkg="uwb_range_fake" type="uwb_range_fake_node" output="screen" respawn="true">
     </node>
   </group>
 
