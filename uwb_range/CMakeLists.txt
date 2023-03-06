@@ -17,6 +17,7 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -std=c++17
 find_package(catkin REQUIRED COMPONENTS
   mrs_msgs
   mrs_serial
+  mrs_lib
   roscpp
   std_msgs
 )
@@ -119,7 +120,7 @@ protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS msg.proto)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS mrs_msgs mrs_serial roscpp std_msgs
+  CATKIN_DEPENDS mrs_msgs mrs_lib mrs_serial roscpp std_msgs
   LIBRARIES uwb_range
 )
 

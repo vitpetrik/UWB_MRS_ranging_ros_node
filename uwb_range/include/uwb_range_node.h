@@ -9,8 +9,14 @@
  * 
  */
 
+#ifndef _UWB_RANGE_NODE_H_
+#define _UWB_RANGE_NODE_H_
+
 #include <ros/ros.h>
 #include <ros/package.h>
+
+#include <unordered_map>
+
 #include <mrs_msgs/BacaProtocol.h>
 
 #include "protocol.h"
@@ -34,6 +40,12 @@ namespace uwb {
         */
             ros::NodeHandle nh;
             int preprocessing;
+
+            int id;
+            std::string output_frame;
+            std::unordered_map<uint16_t, uint64_t> ARP_table;
+
+            double variance;
 
         /** 
          * Publisher definitions
@@ -96,3 +108,5 @@ namespace uwb {
         void beacon_timer_cb(const ros::TimerEvent&);
     };
 }
+
+#endif /* _UWB_RANGE_NODE_H_ */

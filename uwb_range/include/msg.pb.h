@@ -274,10 +274,10 @@ class beacon_msg : public ::google::protobuf::Message /* @@protoc_insertion_poin
   ::std::string* release_uav_name();
   void set_allocated_uav_name(::std::string* uav_name);
 
-  // .beacon.gps_t gps = 3;
+  // .beacon.gps_t gps = 4;
   bool has_gps() const;
   void clear_gps();
-  static const int kGpsFieldNumber = 3;
+  static const int kGpsFieldNumber = 4;
   private:
   const ::beacon::gps_t& _internal_gps() const;
   public:
@@ -286,9 +286,15 @@ class beacon_msg : public ::google::protobuf::Message /* @@protoc_insertion_poin
   ::beacon::gps_t* mutable_gps();
   void set_allocated_gps(::beacon::gps_t* gps);
 
-  // int32 uav_type = 2;
+  // uint64 id = 2;
+  void clear_id();
+  static const int kIdFieldNumber = 2;
+  ::google::protobuf::uint64 id() const;
+  void set_id(::google::protobuf::uint64 value);
+
+  // int32 uav_type = 3;
   void clear_uav_type();
-  static const int kUavTypeFieldNumber = 2;
+  static const int kUavTypeFieldNumber = 3;
   ::google::protobuf::int32 uav_type() const;
   void set_uav_type(::google::protobuf::int32 value);
 
@@ -298,6 +304,7 @@ class beacon_msg : public ::google::protobuf::Message /* @@protoc_insertion_poin
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::internal::ArenaStringPtr uav_name_;
   ::beacon::gps_t* gps_;
+  ::google::protobuf::uint64 id_;
   ::google::protobuf::int32 uav_type_;
   mutable ::google::protobuf::internal::CachedSize _cached_size_;
   friend struct ::protobuf_msg_2eproto::TableStruct;
@@ -398,7 +405,21 @@ inline void beacon_msg::set_allocated_uav_name(::std::string* uav_name) {
   // @@protoc_insertion_point(field_set_allocated:beacon.beacon_msg.uav_name)
 }
 
-// int32 uav_type = 2;
+// uint64 id = 2;
+inline void beacon_msg::clear_id() {
+  id_ = GOOGLE_ULONGLONG(0);
+}
+inline ::google::protobuf::uint64 beacon_msg::id() const {
+  // @@protoc_insertion_point(field_get:beacon.beacon_msg.id)
+  return id_;
+}
+inline void beacon_msg::set_id(::google::protobuf::uint64 value) {
+  
+  id_ = value;
+  // @@protoc_insertion_point(field_set:beacon.beacon_msg.id)
+}
+
+// int32 uav_type = 3;
 inline void beacon_msg::clear_uav_type() {
   uav_type_ = 0;
 }
@@ -412,7 +433,7 @@ inline void beacon_msg::set_uav_type(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:beacon.beacon_msg.uav_type)
 }
 
-// .beacon.gps_t gps = 3;
+// .beacon.gps_t gps = 4;
 inline bool beacon_msg::has_gps() const {
   return this != internal_default_instance() && gps_ != NULL;
 }

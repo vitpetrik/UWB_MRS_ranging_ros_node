@@ -12,7 +12,8 @@ message gps_t {
 
 message beacon_msg {
     string uav_name = 1;
-    int32 uav_type = 2;
+    uint64 id = 2;
+    int32 uav_type = 3;
 
-    gps_t gps = 3;
+    gps_t gps = 4;
 }

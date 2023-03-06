@@ -11,8 +11,16 @@
 
 #include <ros/ros.h>
 #include <ros/package.h>
+
+#include <math.h>
+#include <cmath>
+
+#include <mrs_msgs/RangeWithCovarianceArrayStamped.h>
 #include <mrs_msgs/BacaProtocol.h>
 #include <mrs_msgs/RangeWithVar.h>
+
+#include <mrs_lib/param_loader.h>
+
 #include <cstdint>
 #include "msg.pb.h"
 
@@ -28,10 +36,16 @@ namespace uwb
     {
         this->nh = nh;
 
+        mrs_lib::ParamLoader param_loader(nh, "UWB range");
+
+        param_loader.loadParam("id", this->id);
+        param_loader.loadParam("output_frame", this->output_frame);
+        param_loader.loadParam("variance", this->variance);
+
         this->baca_write = nh.advertise<mrs_msgs::BacaProtocol>("baca_out", 1);
         this->baca_read = nh.subscribe("baca_in", 10, &UwbRange::baca_read_cb, this);
 
-        this->range_out = nh.advertise<mrs_msgs::RangeWithVar>("range_out", 1);
+        this->range_out = nh.advertise<mrs_msgs::RangeWithCovarianceArrayStamped>("range_out", 1);
 
         this->beacon_timer = nh.createTimer(ros::Duration(1), &UwbRange::beacon_timer_cb, this);
 
@@ -94,6 +108,8 @@ namespace uwb
 
         ROS_INFO("[UWB_RANGER]: Beacon RX from %s", beacon.uav_name().c_str());
 
+        this->ARP_table[uwb_data.source_mac] = beacon.id();
+
         this->nh.getParam("preprocessing", this->preprocessing);
         this->request_ranging(uwb_data.source_mac, this->preprocessing);
 
@@ -148,16 +164,29 @@ namespace uwb
                      ranging_msg.range,
                      ranging_msg.variance);
 
-            mrs_msgs::RangeWithVar out_msg;
+            if (not this->ARP_table.count(ranging_msg.source_mac))
+            {
+                ROS_INFO("[UWB_RANGER]: MAC address 0x%X not found in ARP table", ranging_msg.source_mac);
+            }
 
-            out_msg.stamp = serial_msg.stamp;
+            uint64_t source_id = this->ARP_table[ranging_msg.source_mac];
 
-            std::ostringstream ss;
-            ss << "0x" << std::uppercase <<  std::hex << ranging_msg.source_mac;
+            mrs_msgs::RangeWithCovarianceArrayStamped out_msg;
+            mrs_msgs::RangeWithCovarianceIdentified range;
 
-            out_msg.uav_name = ss.str();
-            out_msg.range = ranging_msg.range;
-            out_msg.variance = ranging_msg.variance;
+            out_msg.header.stamp = serial_msg.stamp;
+            out_msg.header.frame_id = this->output_frame;
+
+            range.id = source_id;
+            range.variance = this->variance;
+            range.range.range = ranging_msg.range;
+
+            range.range.field_of_view = 2*M_PI;
+            range.range.radiation_type = 3;
+            range.range.min_range = 0;
+            range.range.max_range = 100;
+
+            out_msg.ranges.push_back(range);
 
             this->range_out.publish(out_msg);
             break;
@@ -209,6 +238,7 @@ namespace uwb
 
         beacon.set_uav_name(uav_name);
         beacon.set_uav_type(1);
+        beacon.set_id(this->id);
         beacon.mutable_gps()->set_lat(49.7452934);
         beacon.mutable_gps()->set_long_(14.0579293);
 

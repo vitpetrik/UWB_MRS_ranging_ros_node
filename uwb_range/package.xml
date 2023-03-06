@@ -24,8 +24,8 @@
 
   <depend>mrs_msgs</depend>
   <depend>mrs_serial</depend>
+  <depend>mrs_lib</depend>
   <depend>roscpp</depend>
-  <depend>rospy</depend>
   <depend>std_msgs</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
