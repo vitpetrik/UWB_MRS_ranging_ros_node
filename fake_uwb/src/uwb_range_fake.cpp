@@ -61,7 +61,7 @@ int main(int argc, char **argv)
 
     ros::Publisher dist_pub = nh.advertise<mrs_msgs::RangeWithCovarianceArrayStamped>("distance", 1000);
 
-    ros::Rate loop_rate(50);
+    ros::Rate loop_rate(10);
 
     while (ros::ok())
     {
@@ -79,8 +79,8 @@ int main(int argc, char **argv)
         mrs_msgs::RangeWithCovarianceArrayStamped out_msg;
         mrs_msgs::RangeWithCovarianceIdentified range;
 
-        range.id = 1;
-        range.variance = 0.20;
+        range.id = 0;
+        range.variance = 0.22;
 
         range.range.field_of_view = 2*M_PI;
         range.range.radiation_type = 3;
