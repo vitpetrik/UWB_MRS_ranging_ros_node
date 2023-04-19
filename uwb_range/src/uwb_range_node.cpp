@@ -14,6 +14,7 @@
 
 #include <math.h>
 #include <cmath>
+#include <random>
 
 #include <mrs_msgs/RangeWithCovarianceArrayStamped.h>
 #include <mrs_msgs/BacaProtocol.h>
@@ -29,6 +30,7 @@
 
 #include "uwb_range_node.h"
 #include "protocol.h"
+
 
 namespace uwb
 {
@@ -47,7 +49,14 @@ namespace uwb
 
         this->range_out = nh.advertise<mrs_msgs::RangeWithCovarianceArrayStamped>("range_out", 1);
 
-        this->beacon_timer = nh.createTimer(ros::Duration(1), &UwbRange::beacon_timer_cb, this);
+        // choose random period for beacon timer
+        // to prevent some unwanted synchronizations
+
+        std::random_device rd;
+        std::mt19937 e2(rd());
+        std::uniform_real_distribution<> beacon_period(4, 6);
+
+        this->beacon_timer = nh.createTimer(ros::Duration(beacon_period(e2)), &UwbRange::beacon_timer_cb, this);
 
         return;
     }
