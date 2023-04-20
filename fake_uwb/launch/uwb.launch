@@ -15,8 +15,14 @@
   <arg name="profiler" default="$(optenv PROFILER false)" />
   <arg name="preprocessing" default="1" />
 
+  <arg name="output_id" default="0"/>
+  <arg name="target_uav" default="uav1"/>
+
   <group ns="$(arg UAV_NAME)">
     <node name="uwb_range" pkg="uwb_range_fake" type="uwb_range_fake_node" output="screen" respawn="true">
+        <param name="uav" value="$(arg UAV_NAME)" />
+        <param name="output_id" value="$(arg output_id)" />
+        <param name="target_uav" value="$(arg target_uav)" />
     </node>
   </group>
 

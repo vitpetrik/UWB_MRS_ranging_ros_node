@@ -15,6 +15,8 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Point.h>
 
+#include <mrs_lib/param_loader.h>
+
 #include <random>
 #include <cstdint>
 
@@ -29,6 +31,8 @@ geometry_msgs::Point pose2;
 
 bool first_pos = false;
 bool second_pos = false;
+
+
 
 void cb_1(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
 {
@@ -49,15 +53,25 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "uwb_range_fake");
     ros::NodeHandle nh("~");
 
+    mrs_lib::ParamLoader param_loader(nh, "Uwb fake");
+
     ROS_INFO("[UWB_RANGER]: Node set");
 
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine generator(seed);
 
+    std::string uav_name;
+    std::string target_uav;
+    int output_id = 0;
+
+    param_loader.loadParam("uav", uav_name);
+    param_loader.loadParam("target_uav", target_uav);
+    param_loader.loadParam("output_id", output_id);
+
     std::normal_distribution<double> normal_dist(0, 0.05);
 
-    ros::Subscriber sub1 = nh.subscribe("/uav1/ground_truth_pose", 100, cb_1);
-    ros::Subscriber sub2 = nh.subscribe("/uav2/ground_truth_pose", 100, cb_2);
+    ros::Subscriber sub1 = nh.subscribe("/" + uav_name + "/ground_truth_pose", 100, cb_1);
+    ros::Subscriber sub2 = nh.subscribe("/" + target_uav + "/ground_truth_pose", 100, cb_2);
 
     ros::Publisher dist_pub = nh.advertise<mrs_msgs::RangeWithCovarianceArrayStamped>("distance", 1000);
 
@@ -79,7 +93,7 @@ int main(int argc, char **argv)
         mrs_msgs::RangeWithCovarianceArrayStamped out_msg;
         mrs_msgs::RangeWithCovarianceIdentified range;
 
-        range.id = 0;
+        range.id = output_id;
         range.variance = 0.22;
 
         range.range.field_of_view = 2*M_PI;

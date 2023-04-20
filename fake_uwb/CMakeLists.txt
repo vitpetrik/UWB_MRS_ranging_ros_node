@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   mrs_msgs
   roscpp
   std_msgs
+  mrs_lib
 )
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
