@@ -54,6 +54,7 @@
       <param name="id" value="$(arg id)" />
       <param name="output_frame" value="$(arg output_frame)"/>
       <param name="variance" value="$(arg variance)" />
+      <param name="enable_requests" value="$(arg enable_requests)" />
     </node>
   </group>
 
