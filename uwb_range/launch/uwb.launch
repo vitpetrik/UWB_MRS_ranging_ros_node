@@ -14,11 +14,12 @@
   <arg name="name" default="_uwb" />
   <arg name="portname" default="/dev/ttyACM0" />
   <arg name="profiler" default="$(optenv PROFILER false)" />
-  <arg name="preprocessing" default="1" />
+  <arg name="preprocessing" default="0" />
 
   <arg name="id" default="0" />
   <arg name="output_frame" default="local_origin"/>
   <arg name="variance" default="0.20" />
+  <arg name="enable_requests" default="1" />
 
   <group ns="$(arg UAV_NAME)">
 

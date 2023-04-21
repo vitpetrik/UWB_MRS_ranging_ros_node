@@ -41,6 +41,7 @@ namespace uwb
         mrs_lib::ParamLoader param_loader(nh, "UWB range");
 
         param_loader.loadParam("id", this->id);
+        param_loader.loadParam("enable_requests", this->enable_requests);
         param_loader.loadParam("output_frame", this->output_frame);
         param_loader.loadParam("variance", this->variance);
 
@@ -118,6 +119,9 @@ namespace uwb
         ROS_INFO("[UWB_RANGER]: Beacon RX from %s", beacon.uav_name().c_str());
 
         this->ARP_table[uwb_data.source_mac] = beacon.id();
+
+        if(!enable_requests)
+            return;
 
         this->nh.getParam("preprocessing", this->preprocessing);
         this->request_ranging(uwb_data.source_mac, this->preprocessing);

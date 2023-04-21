@@ -42,6 +42,7 @@ namespace uwb {
             int preprocessing;
 
             int id;
+            int enable_requests;
             std::string output_frame;
             std::unordered_map<uint16_t, uint64_t> ARP_table;
 
