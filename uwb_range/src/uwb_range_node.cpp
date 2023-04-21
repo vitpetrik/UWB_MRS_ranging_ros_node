@@ -172,7 +172,7 @@ namespace uwb
         {
             struct ranging_msg_t& ranging_msg = msg.data.ranging_msg;
 
-            ROS_INFO("[UWB_RANGER]: Received RANGING_RESULT 0x%X | %f m | %f",
+            ROS_INFO_THROTTLE(0.5, "[UWB_RANGER]: Received RANGING_RESULT 0x%X | %f m | %f",
                      ranging_msg.source_mac,
                      ranging_msg.range,
                      ranging_msg.variance);
