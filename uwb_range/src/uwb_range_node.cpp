@@ -40,7 +40,7 @@ namespace uwb
 
         mrs_lib::ParamLoader param_loader(nh, "UWB range");
 
-        param_loader.loadParam("id", this->id);
+        param_loader.loadParam("uwb_id", this->id);
         param_loader.loadParam("enable_requests", this->enable_requests);
         param_loader.loadParam("output_frame", this->output_frame);
         param_loader.loadParam("variance", this->variance);
