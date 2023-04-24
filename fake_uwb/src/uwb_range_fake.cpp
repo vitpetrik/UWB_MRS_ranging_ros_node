@@ -62,11 +62,13 @@ int main(int argc, char **argv)
 
     std::string uav_name;
     std::string target_uav;
+    std::string output_frame;
     int output_id = 0;
 
     param_loader.loadParam("uav", uav_name);
     param_loader.loadParam("target_uav", target_uav);
     param_loader.loadParam("output_id", output_id);
+    param_loader.loadParam("output_frame", output_frame);
 
     std::normal_distribution<double> normal_dist(0, 0.05);
 
@@ -108,6 +110,7 @@ int main(int argc, char **argv)
 
         out_msg.ranges.push_back(range);
         out_msg.header.stamp = ros::Time::now();
+        out_msg.header.frame_id = output_frame;
 
         dist_pub.publish(out_msg);
         ros::spinOnce();
