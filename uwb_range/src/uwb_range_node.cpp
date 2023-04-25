@@ -279,12 +279,10 @@ namespace uwb
     {
         struct ros_msg_t msg;
         mrs_msgs::BacaProtocol baca_out;
-
-        std::string uav_name;
-        this->nh.getParam("uav_name", uav_name);
+        ROS_INFO("[UWB_RANGER]: Asking for WHO_I_AM");
 
         msg.address = WHO_I_AM;
-        msg.mode = 'w';
+        msg.mode = 'r';
 
         serialize_ros(&msg, baca_out);
         this->baca_write.publish(baca_out);
