@@ -64,6 +64,7 @@ namespace uwb {
          */
 
             ros::Timer beacon_timer;
+            ros::Timer ping_timer;
 
         /**
          * Methods
@@ -107,6 +108,12 @@ namespace uwb {
          * 
          */
         void beacon_timer_cb(const ros::TimerEvent&);
+
+        /**
+         * @brief Sens WHO_I_AM message to uwb
+         * 
+         */
+        void ping_timer_cb(const ros::TimerEvent&);
     };
 }
 

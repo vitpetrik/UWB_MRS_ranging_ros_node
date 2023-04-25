@@ -55,9 +55,10 @@ namespace uwb
 
         std::random_device rd;
         std::mt19937 e2(rd());
-        std::uniform_real_distribution<> beacon_period(4, 6);
+        std::uniform_real_distribution<> beacon_period(1, 2);
 
         this->beacon_timer = nh.createTimer(ros::Duration(beacon_period(e2)), &UwbRange::beacon_timer_cb, this);
+        this->ping_timer = nh.createTimer(ros::Duration(1), &UwbRange::ping_timer_cb, this);
 
         return;
     }
@@ -268,6 +269,25 @@ namespace uwb
         this->baca_write.publish(baca_out);
 
         return;
+    }
+
+    /**
+     * @brief Sens WHO_I_AM message to uwb
+     * 
+     */
+    void UwbRange::ping_timer_cb(const ros::TimerEvent&)
+    {
+        struct ros_msg_t msg;
+        mrs_msgs::BacaProtocol baca_out;
+
+        std::string uav_name;
+        this->nh.getParam("uav_name", uav_name);
+
+        msg.address = WHO_I_AM;
+        msg.mode = 'w';
+
+        serialize_ros(&msg, baca_out);
+        this->baca_write.publish(baca_out);
     }
 }
 
