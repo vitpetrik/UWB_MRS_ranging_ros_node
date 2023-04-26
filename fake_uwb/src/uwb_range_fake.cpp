@@ -75,7 +75,7 @@ int main(int argc, char **argv)
     ros::Subscriber sub1 = nh.subscribe("/" + uav_name + "/ground_truth_pose", 100, cb_1);
     ros::Subscriber sub2 = nh.subscribe("/" + target_uav + "/ground_truth_pose", 100, cb_2);
 
-    ros::Publisher dist_pub = nh.advertise<mrs_msgs::RangeWithCovarianceArrayStamped>("distance", 1000);
+    ros::Publisher dist_pub = nh.advertise<mrs_msgs::RangeWithCovarianceArrayStamped>("range_out", 1);
 
     ros::Rate loop_rate(10);
 

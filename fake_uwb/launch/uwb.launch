@@ -25,6 +25,8 @@
         <param name="output_id" value="$(arg output_id)" />
         <param name="target_uav" value="$(arg target_uav)" />
         <param name="output_frame" value="$(arg output_frame)"/>
+
+        <remap from="~range_out" to="~range"/>
     </node>
   </group>
 

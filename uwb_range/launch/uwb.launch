@@ -49,6 +49,8 @@
       <remap from="~baca_out" to="/$(arg UAV_NAME)/serial_uwb/send_message" />
       <remap from="~baca_in" to="/$(arg UAV_NAME)/serial_uwb/received_message"/>
 
+      <remap from="~range_out" to="~range"/>
+
       <param name="preprocessing" type="int" value="$(arg preprocessing)" />
       <param name="uav_name" type="string" value="$(arg UAV_NAME)" />
       <param name="uwb_id" value="$(arg uwb_id)" />
