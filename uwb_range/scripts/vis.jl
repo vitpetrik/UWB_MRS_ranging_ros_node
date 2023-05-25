@@ -118,7 +118,7 @@ function main()
     @printf "Julia visualizer\n\r"
 
     init_node("rosjl_example")
-    sub = Subscriber{RangeWithCovarianceArrayStamped}("/uav1/uwb_range/distance", callback)
+    sub = Subscriber{RangeWithCovarianceArrayStamped}("/uav1/uwb_range/range", callback)
 
     t = Timer((t) -> update_plots(), 1; interval=1/25) 
 
