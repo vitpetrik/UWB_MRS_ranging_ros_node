@@ -105,7 +105,8 @@ int main(int argc, char **argv)
 
         range.range.header.stamp = ros::Time::now();
         range.range.range = dist + normal_dist(generator);
-
+        
+        ROS_INFO("[UWB_RANGER]: uav_name: %s | target_uav %s", uav_name.c_str(),  target_uav.c_str());
         ROS_INFO("[UWB_RANGER]: Publishing range: %.2f m", range.range.range);
 
         out_msg.ranges.push_back(range);
