@@ -194,6 +194,8 @@ namespace uwb
             range.id = source_id;
             range.variance = this->variance;
             range.range.range = ranging_msg.range;
+            range.power_a = ranging_msg.power_a;
+            range.power_b = ranging_msg.power_b;
 
             range.range.field_of_view = 2*M_PI;
             range.range.radiation_type = 3;

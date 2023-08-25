@@ -136,6 +136,14 @@ void deserialize_ros(struct ros_msg_t *msg, const mrs_msgs::BacaProtocol &baca)
                   baca.payload.begin() + index + sizeof(msg->data.ranging_msg.raw),
                   reinterpret_cast<char*>(&msg->data.ranging_msg.raw));
         index += sizeof(msg->data.ranging_msg.raw);
+        std::copy(baca.payload.begin() + index,
+                  baca.payload.begin() + index + sizeof(msg->data.ranging_msg.power_a),
+                  reinterpret_cast<char*>(&msg->data.ranging_msg.power_a));
+        index += sizeof(msg->data.ranging_msg.power_a);
+        std::copy(baca.payload.begin() + index,
+                  baca.payload.begin() + index + sizeof(msg->data.ranging_msg.power_b),
+                  reinterpret_cast<char*>(&msg->data.ranging_msg.power_b));
+        index += sizeof(msg->data.ranging_msg.power_b);
         break;
     case RESET:
         std::copy(baca.payload.begin() + index,
