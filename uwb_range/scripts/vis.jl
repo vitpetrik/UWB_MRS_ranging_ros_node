@@ -6,7 +6,7 @@ using RobotOS
 using StatsPlots, Distributions
 using LinearAlgebra
 using DelimitedFiles
-using Plots
+using Plots, Measures
 using Statistics
 using Infiltrator
 using Dates
@@ -14,78 +14,82 @@ using PlotThemes
 using DataFrames
 using DSP
 
-Plots.theme(:vibrant, fmt = :PDF)
-
 @rosimport mrs_msgs.msg:RangeWithCovarianceArrayStamped
 rostypegen()
 using .mrs_msgs.msg
 
+gr()
+
+
 data = Dict{UInt64,DataFrame}()
+global index = 0
 
 global START_TIME::Float64 = NaN
 
 function update_plots()
+    default_plots = (
+        fontfamily="computer modern",
+        minorgrid=true,
+        legend=true,
+        color_palette=palette(["#43F6C8", "#2989D8", "#9A9EFF", "#1FCAFF"]),
+        widen=true,
+        background_color=:white,
+    )
+    global index
     histograms = []
 
     l = @layout [a{0.6h} ; b{0.2h}; c{0.2h}]
 
     distances = plot(
-        minorgrid=true, 
-        title="Range", 
-        fontfamily="Computer Modern",
-        titlefontsize=12,
+        title="Vzdálenosti", 
+        fontfamily="Computer Modern";
+        default_plots...,
         label="",
         xguide = "m",
         legend_position=:topleft,
-        guidefontsize=10,
-        color_palette=:lighttest
-    )
+        )
 
     time_plot = plot(
-        minorgrid=true, 
-        title="Range in time", 
-        fontfamily="Computer Modern",
-        titlefontsize=12,
+        title="Vzdálenost v čase", 
+        fontfamily="Computer Modern";
+        default_plots...,
         label="",
-        xguide = "time [s]",
-        guidefontsize=10,
+        xguide = "čas [s]",
         legend_position=:topleft,
-        color_palette=:lighttest,
-    )
+        )
 
     for (key, value) in data
-        axis = stephist(last(value, 500).range, bins=11, normalize=:pdf, fill=true, fillalpha=0.5, label="", color=:red)
+        axis = stephist(last(value, 500).range, bins=11, normalize=:pdf, fill=true, fillalpha=1.0, label="", color="#43F6C8"; default_plots...)
         if (size(value)[1] > 2)
             m = mean(last(value, 500).range)
             s = std(last(value, 500).range)
 
             d = Normal(m, s)
-            plot!(axis, d, 
+            plot!(axis, d;
+            default_plots..., 
             linewidth=3,
             linestyle=:dash,
             color=:black,
-            minorgrid=true, 
             title="$key", 
             legend_title="μ = $(@sprintf("%.2f", m)) m\nσ = $(@sprintf("%.3f", s)) m",
-            legend_title_font_pointsize=6,
+            legendfontsize=10,
             legend_position=:topright,
             fontfamily="Computer Modern",
-            titlefontsize=12,
             label="",
-            guidefontsize=10,
-            xguide = "m")
+            xguide = "vzdálenost [m]")
             plot!(distances, d, label=key, linewidth=2)
         end
         push!(histograms, axis)
-        plot!(time_plot, value.timestamp, value.range, label=key)
+        plot!(time_plot, value.timestamp.-value.timestamp[1], value.range, label=key)
     end
 
     xlimits = xlims(distances)
-    plot!(distances, xlims=(0, max(10, xlimits[2])))
+    plot!(distances, xlims=(0, max(5, xlimits[2])))
 
-    pl = plot(plot(histograms...), distances, time_plot, layout = l, size=(1500,1000))
+    pl = plot(plot(histograms...), distances, time_plot, layout = l; default_plots..., size=(1024,768), margin = 5mm)
     
-    display(pl)
+    savefig(pl, "plot_$(index).pdf")
+    index += 1
 end
 
 function callback(msg::RangeWithCovarianceArrayStamped)
@@ -108,9 +112,13 @@ function callback(msg::RangeWithCovarianceArrayStamped)
         if !haskey(data, measurement.id)
             data[measurement.id] = DataFrame(timestamp = Float64[], range = Float64[], var = Float64[])
         end
+
+        if measurement.range.range > 5
+            return
+        end
     
         push!(data[measurement.id], [time_stamp measurement.range.range measurement.variance])
-        filter!(row -> row.timestamp > time_stamp - 20, data[measurement.id])
+        filter!(row -> row.timestamp > time_stamp - 60, data[measurement.id])
     end
 end
 
@@ -120,7 +128,7 @@ function main()
     init_node("rosjl_example")
     sub = Subscriber{RangeWithCovarianceArrayStamped}("/uav1/uwb_range/range", callback)
 
-    t = Timer((t) -> update_plots(), 1; interval=1/25) 
+    t = Timer((t) -> update_plots(), 1; interval=10) 
 
     spin()
 end

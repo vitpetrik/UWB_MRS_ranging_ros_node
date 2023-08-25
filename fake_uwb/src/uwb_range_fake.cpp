@@ -96,7 +96,7 @@ int main(int argc, char **argv)
         mrs_msgs::RangeWithCovarianceIdentified range;
 
         range.id = output_id;
-        range.variance = 0.22;
+        range.variance = 0.0025;
 
         range.range.field_of_view = 2*M_PI;
         range.range.radiation_type = 3;
