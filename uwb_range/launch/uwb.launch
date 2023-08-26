@@ -18,7 +18,7 @@
 
   <arg name="uwb_id" default="$(optenv UWB_ID 0)" />
   <arg name="output_frame" default="fcu"/>
-  <arg name="variance" default="0.20" />
+  <arg name="variance" default="0.0004" />
   <arg name="enable_requests" default="1" />
 
   <group ns="$(arg UAV_NAME)">

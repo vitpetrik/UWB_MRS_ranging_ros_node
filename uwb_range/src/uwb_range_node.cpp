@@ -25,12 +25,11 @@
 #include <cstdint>
 #include "msg.pb.h"
 
-#include<sstream>
-#include<iostream>
+#include <sstream>
+#include <iostream>
 
 #include "uwb_range_node.h"
 #include "protocol.h"
-
 
 namespace uwb
 {
@@ -89,16 +88,16 @@ namespace uwb
     }
 
     /**
-    * @brief Deserialize and handle anchor message type
-    * 
-    * @param uwb_data  pointer to uwb_data_msg_t
-    */  
+     * @brief Deserialize and handle anchor message type
+     *
+     * @param uwb_data  pointer to uwb_data_msg_t
+     */
     void UwbRange::handle_anchor_msg(struct uwb_data_msg_t &uwb_data)
     {
         struct anchor_msg_t anchor_msg;
         deserialize_anchor_msg(&anchor_msg, uwb_data.payload);
 
-        if(anchor_msg.data.anchor_beacon.capabilities != RDEV)
+        if (anchor_msg.data.anchor_beacon.capabilities != RDEV)
             return;
 
         this->nh.getParam("preprocessing", this->preprocessing);
@@ -108,10 +107,10 @@ namespace uwb
     }
 
     /**
-    * @brief Deserialize and handle ros message type
-    * 
-    * @param uwb_data  pointer to uwb_data_msg_t
-    */
+     * @brief Deserialize and handle ros message type
+     *
+     * @param uwb_data  pointer to uwb_data_msg_t
+     */
     void UwbRange::handle_ros_msg(struct uwb_data_msg_t &uwb_data)
     {
         beacon::beacon_msg beacon;
@@ -121,7 +120,7 @@ namespace uwb
 
         this->ARP_table[uwb_data.source_mac] = beacon.id();
 
-        if(!enable_requests)
+        if (!enable_requests)
             return;
 
         this->nh.getParam("preprocessing", this->preprocessing);
@@ -132,7 +131,7 @@ namespace uwb
 
     /**
      * @brief Send request message to UWB
-     * 
+     *
      * @param target_mac L2 address of target
      * @param preprocessing preprocessing type
      */
@@ -153,7 +152,7 @@ namespace uwb
 
     /**
      * @brief Receive message from baca node
-     * 
+     *
      * @param serial_msg received message
      */
     void UwbRange::baca_read_cb(const mrs_msgs::BacaProtocol serial_msg)
@@ -171,12 +170,14 @@ namespace uwb
             break;
         case RANGING_RESULT:
         {
-            struct ranging_msg_t& ranging_msg = msg.data.ranging_msg;
+            struct ranging_msg_t &ranging_msg = msg.data.ranging_msg;
 
-            ROS_INFO_THROTTLE(0.5, "[UWB_RANGER]: Received RANGING_RESULT 0x%X | %f m | %f",
-                     ranging_msg.source_mac,
-                     ranging_msg.range,
-                     ranging_msg.variance);
+            ROS_INFO_THROTTLE(0.5, "[UWB_RANGER]: Received RANGING_RESULT 0x%X | %.1f m | %f | %.1f dBm | %.1f dBm",
+                              ranging_msg.source_mac,
+                              ranging_msg.range,
+                              ranging_msg.variance, 
+                              ranging_msg.power_a, 
+                              ranging_msg.power_b);
 
             if (not this->ARP_table.count(ranging_msg.source_mac))
             {
@@ -197,7 +198,7 @@ namespace uwb
             range.power_a = ranging_msg.power_a;
             range.power_b = ranging_msg.power_b;
 
-            range.range.field_of_view = 2*M_PI;
+            range.range.field_of_view = 2 * M_PI;
             range.range.radiation_type = 3;
             range.range.min_range = 0;
             range.range.max_range = 100;
@@ -241,7 +242,7 @@ namespace uwb
 
     /**
      * @brief Peridocally send beacon frame
-     * 
+     *
      */
     void UwbRange::beacon_timer_cb(const ros::TimerEvent &)
     {
@@ -275,9 +276,9 @@ namespace uwb
 
     /**
      * @brief Sens WHO_I_AM message to uwb
-     * 
+     *
      */
-    void UwbRange::ping_timer_cb(const ros::TimerEvent&)
+    void UwbRange::ping_timer_cb(const ros::TimerEvent &)
     {
         struct ros_msg_t msg;
         mrs_msgs::BacaProtocol baca_out;
