@@ -27,7 +27,10 @@
         <param name="output_frame" value="$(arg output_frame)"/>
 
         <remap from="~range_out" to="~range"/>
+        <remap from="~gps_out" to="~gps"/>
     </node>
+
+    <node name="foo_throttler" type="throttle" pkg="topic_tools" args="messages uwb_range/gps 1" />
   </group>
 
 </launch>

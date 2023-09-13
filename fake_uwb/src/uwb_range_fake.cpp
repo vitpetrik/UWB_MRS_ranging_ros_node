@@ -14,6 +14,8 @@
 #include <mrs_msgs/RangeWithCovarianceArrayStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Point.h>
+#include <sensor_msgs/NavSatFix.h>
+#include <mrs_msgs/NavSatFixArrayStamped.h>
 
 #include <mrs_lib/param_loader.h>
 
@@ -29,10 +31,12 @@
 geometry_msgs::Point pose1;
 geometry_msgs::Point pose2;
 
+ros::Publisher gps_pub;
+
 bool first_pos = false;
 bool second_pos = false;
 
-
+int output_id = 0;
 
 void cb_1(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
 {
@@ -45,6 +49,23 @@ void cb_2(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
 {
     second_pos = true;
     pose2 = msg->pose.pose.position;
+    return;
+}
+
+void gps_cb(const sensor_msgs::NavSatFix::ConstPtr& msg)
+{
+    mrs_msgs::NavSatFixArrayStamped out_msg;
+    mrs_msgs::NavSatFixIdentified gps;
+
+    gps.id = output_id;
+    gps.gps = *msg;
+    
+    out_msg.nav_sat_fixes.push_back(gps);
+    out_msg.header.stamp = msg->header.stamp;
+    out_msg.header.frame_id = "gps";
+
+    gps_pub.publish(out_msg);
+
     return;
 }
 
@@ -63,7 +84,6 @@ int main(int argc, char **argv)
     std::string uav_name;
     std::string target_uav;
     std::string output_frame;
-    int output_id = 0;
 
     param_loader.loadParam("uav", uav_name);
     param_loader.loadParam("target_uav", target_uav);
@@ -75,7 +95,10 @@ int main(int argc, char **argv)
     ros::Subscriber sub1 = nh.subscribe("/" + uav_name + "/ground_truth_pose", 100, cb_1);
     ros::Subscriber sub2 = nh.subscribe("/" + target_uav + "/ground_truth_pose", 100, cb_2);
 
+    ros::Subscriber sub_gps = nh.subscribe("/" + target_uav + "/mavros/global_position/global", 100, gps_cb);
+
     ros::Publisher dist_pub = nh.advertise<mrs_msgs::RangeWithCovarianceArrayStamped>("range_out", 1);
+    gps_pub = nh.advertise<mrs_msgs::NavSatFixArrayStamped>("gps_out", 1);
 
     ros::Rate loop_rate(10);
 
