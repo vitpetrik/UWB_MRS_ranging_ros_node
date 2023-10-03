@@ -16,6 +16,7 @@
 #include <geometry_msgs/Point.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <mrs_msgs/NavSatFixArrayStamped.h>
+#include <nav_msgs/Odometry.h>
 
 #include <mrs_lib/param_loader.h>
 
@@ -37,6 +38,7 @@ bool first_pos = false;
 bool second_pos = false;
 
 int output_id = 0;
+double altitude = nan("");
 
 void cb_1(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
 {
@@ -59,6 +61,8 @@ void gps_cb(const sensor_msgs::NavSatFix::ConstPtr& msg)
 
     gps.id = output_id;
     gps.gps = *msg;
+
+    gps.gps.altitude = altitude;
     
     out_msg.nav_sat_fixes.push_back(gps);
     out_msg.header.stamp = msg->header.stamp;
@@ -66,6 +70,12 @@ void gps_cb(const sensor_msgs::NavSatFix::ConstPtr& msg)
 
     gps_pub.publish(out_msg);
 
+    return;
+}
+
+void odometry_cb(const nav_msgs::Odometry::ConstPtr& msg)
+{
+    altitude = msg->pose.pose.position.z;
     return;
 }
 
@@ -96,6 +106,7 @@ int main(int argc, char **argv)
     ros::Subscriber sub2 = nh.subscribe("/" + target_uav + "/ground_truth_pose", 100, cb_2);
 
     ros::Subscriber sub_gps = nh.subscribe("/" + target_uav + "/mavros/global_position/global", 100, gps_cb);
+    ros::Subscriber sub_odometry = nh.subscribe("/" + target_uav + "/odometry/odom_main", 100, odometry_cb);
 
     ros::Publisher dist_pub = nh.advertise<mrs_msgs::RangeWithCovarianceArrayStamped>("range_out", 1);
     gps_pub = nh.advertise<mrs_msgs::NavSatFixArrayStamped>("gps_out", 1);
