@@ -40,14 +40,14 @@ bool second_pos = false;
 int output_id = 0;
 double altitude = nan("");
 
-void cb_1(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
+void cb_1(const nav_msgs::Odometry::ConstPtr& msg)
 {
     first_pos = true;
     pose1 = msg->pose.pose.position;
     return;
 }
 
-void cb_2(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
+void cb_2(const nav_msgs::Odometry::ConstPtr& msg)
 {
     second_pos = true;
     pose2 = msg->pose.pose.position;
@@ -102,11 +102,11 @@ int main(int argc, char **argv)
 
     std::normal_distribution<double> normal_dist(0, 0.05);
 
-    ros::Subscriber sub1 = nh.subscribe("/" + uav_name + "/ground_truth_pose", 100, cb_1);
-    ros::Subscriber sub2 = nh.subscribe("/" + target_uav + "/ground_truth_pose", 100, cb_2);
+    ros::Subscriber sub1 = nh.subscribe("gt_observer", 10, cb_1);
+    ros::Subscriber sub2 = nh.subscribe("gt_target", 10, cb_2);
 
-    ros::Subscriber sub_gps = nh.subscribe("/" + target_uav + "/mavros/global_position/global", 100, gps_cb);
-    ros::Subscriber sub_odometry = nh.subscribe("/" + target_uav + "/odometry/odom_main", 100, odometry_cb);
+    ros::Subscriber sub_gps = nh.subscribe("gps_target", 10, gps_cb);
+    ros::Subscriber sub_odometry = nh.subscribe("odom_target", 10, odometry_cb);
 
     ros::Publisher dist_pub = nh.advertise<mrs_msgs::RangeWithCovarianceArrayStamped>("range_out", 1);
     gps_pub = nh.advertise<mrs_msgs::NavSatFixArrayStamped>("gps_out", 1);

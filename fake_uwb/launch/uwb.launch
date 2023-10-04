@@ -28,7 +28,7 @@
     args="0.00  0.08 -0.1 0.0 0.0 0.0 $(arg UAV_NAME)/fcu $(arg UAV_NAME)/uwb"/>
 
 
-    <!-- <node name="uwb_range" pkg="uwb_range_fake" type="uwb_range_fake_node" output="screen" respawn="true">
+    <node name="uwb_range" pkg="uwb_range_fake" type="uwb_range_fake_node" output="screen" respawn="true">
         <param name="uav" value="$(arg UAV_NAME)" />
         <param name="output_id" value="$(arg output_id)" />
         <param name="target_uav" value="$(arg target_uav)" />
@@ -36,9 +36,15 @@
 
         <remap from="~range_out" to="~range"/>
         <remap from="~gps_out" to="~gps"/>
+
+        <remap from="~gt_observer" to="/$(arg UAV_NAME)/ground_truth"/>
+        <remap from="~gt_target" to="/$(arg target_uav)/ground_truth"/>
+
+        <remap from="~odom_target" to="/$(arg target_uav)/estimation_manager/odom_main"/>
+        <remap from="~gps_target" to="/$(arg target_uav)/mavros/global_position/global"/>
     </node>
 
-    <node name="foo_throttler" type="throttle" pkg="topic_tools" args="messages uwb_range/gps 1" /> -->
+    <node name="foo_throttler" type="throttle" pkg="topic_tools" args="messages uwb_range/gps 1" />
   </group>
 
 </launch>
