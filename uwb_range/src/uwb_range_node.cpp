@@ -17,7 +17,7 @@
 #include <random>
 
 #include <mrs_msgs/RangeWithCovarianceArrayStamped.h>
-#include <mrs_msgs/BacaProtocol.h>
+#include <mrs_modules_msgs/BacaProtocol.h>
 #include <mrs_msgs/RangeWithVar.h>
 
 #include <mrs_lib/param_loader.h>
@@ -44,7 +44,7 @@ namespace uwb
         param_loader.loadParam("output_frame", this->output_frame);
         param_loader.loadParam("variance", this->variance);
 
-        this->baca_write = nh.advertise<mrs_msgs::BacaProtocol>("baca_out", 1);
+        this->baca_write = nh.advertise<mrs_modules_msgs::BacaProtocol>("baca_out", 1);
         this->baca_read = nh.subscribe("baca_in", 10, &UwbRange::baca_read_cb, this);
 
         this->range_out = nh.advertise<mrs_msgs::RangeWithCovarianceArrayStamped>("range_out", 1);
@@ -73,7 +73,7 @@ namespace uwb
     void UwbRange::reset()
     {
         ROS_INFO("[UWB_RANGER]: Resetting the device");
-        mrs_msgs::BacaProtocol serial_msg;
+        mrs_modules_msgs::BacaProtocol serial_msg;
         serial_msg.stamp = ros::Time::now();
 
         struct ros_msg_t msg;
@@ -137,7 +137,7 @@ namespace uwb
      */
     void UwbRange::request_ranging(uint16_t target_mac, int preprocessing)
     {
-        mrs_msgs::BacaProtocol baca_out;
+        mrs_modules_msgs::BacaProtocol baca_out;
         struct ros_msg_t msg;
 
         msg.address = REQUEST_RANGING;
@@ -155,12 +155,12 @@ namespace uwb
      *
      * @param serial_msg received message
      */
-    void UwbRange::baca_read_cb(const mrs_msgs::BacaProtocol serial_msg)
+    void UwbRange::baca_read_cb(const mrs_modules_msgs::BacaProtocol serial_msg)
     {
         struct ros_msg_t msg;
         deserialize_ros(&msg, serial_msg);
 
-        mrs_msgs::BacaProtocol out_msg;
+        mrs_modules_msgs::BacaProtocol out_msg;
         struct anchor_msg_t anchor_msg;
 
         switch (msg.address)
@@ -248,7 +248,7 @@ namespace uwb
     {
         beacon::beacon_msg beacon;
         struct ros_msg_t msg;
-        mrs_msgs::BacaProtocol baca_out;
+        mrs_modules_msgs::BacaProtocol baca_out;
 
         std::string uav_name;
         this->nh.getParam("uav_name", uav_name);
@@ -281,7 +281,7 @@ namespace uwb
     void UwbRange::ping_timer_cb(const ros::TimerEvent &)
     {
         struct ros_msg_t msg;
-        mrs_msgs::BacaProtocol baca_out;
+        mrs_modules_msgs::BacaProtocol baca_out;
         ROS_INFO("[UWB_RANGER]: Asking for WHO_I_AM");
 
         msg.address = WHO_I_AM;

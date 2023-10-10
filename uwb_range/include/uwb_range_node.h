@@ -17,7 +17,7 @@
 
 #include <unordered_map>
 
-#include <mrs_msgs/BacaProtocol.h>
+#include <mrs_modules_msgs/BacaProtocol.h>
 
 #include "protocol.h"
 
@@ -101,7 +101,7 @@ namespace uwb {
          * 
          * @param serial_msg received message
          */
-        void baca_read_cb(const mrs_msgs::BacaProtocol serial_msg);
+        void baca_read_cb(const mrs_modules_msgs::BacaProtocol serial_msg);
 
         /**
          * @brief Peridocally send beacon frame

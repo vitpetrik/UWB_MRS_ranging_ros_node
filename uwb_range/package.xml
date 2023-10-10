@@ -9,6 +9,7 @@
   <license>BSD 3-Clause</license>
   <buildtool_depend>catkin</buildtool_depend>
 
+  <depend>mrs_modules_msgs</depend>
   <depend>mrs_msgs</depend>
   <depend>mrs_serial</depend>
   <depend>mrs_lib</depend>

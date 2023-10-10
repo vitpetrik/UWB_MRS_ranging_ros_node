@@ -13,7 +13,7 @@
 #define __PROTOCOL_H__
 
 #include <cstdint>
-#include <mrs_msgs/BacaProtocol.h>
+#include <mrs_modules_msgs/BacaProtocol.h>
 
 typedef enum {
     UNDETERMINED,
@@ -132,7 +132,7 @@ struct anchor_msg_t
  * @param msg reference to an struct ros_msg_t
  * @param baca refernce to baca protocol structure
  */
-void serialize_ros(const struct ros_msg_t *msg, mrs_msgs::BacaProtocol &baca);
+void serialize_ros(const struct ros_msg_t *msg, mrs_modules_msgs::BacaProtocol &baca);
 
 /**
  * @brief deserialize baca protocol msg to ros_msg_t
@@ -140,7 +140,7 @@ void serialize_ros(const struct ros_msg_t *msg, mrs_msgs::BacaProtocol &baca);
  * @param msg reference to an struct ros_msg_t
  * @param baca refernce to baca protocol structure
  */
-void deserialize_ros(struct ros_msg_t *msg, const mrs_msgs::BacaProtocol &baca);
+void deserialize_ros(struct ros_msg_t *msg, const mrs_modules_msgs::BacaProtocol &baca);
 
 /**
  * @brief deserialize baca protocol msg to anchor_msg_t

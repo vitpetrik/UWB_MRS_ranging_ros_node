@@ -17,7 +17,7 @@
  * @param msg reference to an struct ros_msg_t
  * @param baca refernce to baca protocol structure
  */
-void serialize_ros(const struct ros_msg_t *msg, mrs_msgs::BacaProtocol &baca)
+void serialize_ros(const struct ros_msg_t *msg, mrs_modules_msgs::BacaProtocol &baca)
 {
     baca.payload.push_back(msg->address);
     baca.payload.push_back(msg->mode);
@@ -80,7 +80,7 @@ void serialize_ros(const struct ros_msg_t *msg, mrs_msgs::BacaProtocol &baca)
  * @param msg reference to an struct ros_msg_t
  * @param baca refernce to baca protocol structure
  */
-void deserialize_ros(struct ros_msg_t *msg, const mrs_msgs::BacaProtocol &baca)
+void deserialize_ros(struct ros_msg_t *msg, const mrs_modules_msgs::BacaProtocol &baca)
 {
     int index = 0;
 
