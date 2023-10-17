@@ -23,6 +23,8 @@
 
   <group ns="$(arg UAV_NAME)">
 
+    <node name="uwb_tf_$(arg UAV_NAME)" pkg="tf2_ros" type="static_transform_publisher" args="0.00  0.08 -0.1 0.0 0.0 0.0 $(arg UAV_NAME)/fcu $(arg UAV_NAME)/uwb"/>
+
     <!-- launch the node -->
     <node pkg="nodelet" type="nodelet" name="serial_uwb" args="standalone baca_protocol/BacaProtocol" respawn="true" output="screen">
       <param name="uav_name" type="string" value="$(arg UAV_NAME)"/>
@@ -49,7 +51,11 @@
       <remap from="~baca_out" to="/$(arg UAV_NAME)/serial_uwb/send_message" />
       <remap from="~baca_in" to="/$(arg UAV_NAME)/serial_uwb/received_message"/>
 
+      <remap from="~odometry_in" to="/$(arg UAV_NAME)/estimation_manager/odom_main"/>
+      <remap from="~gps_in" to="/$(arg UAV_NAME)/mavros/global_position/global"/>
+
       <remap from="~range_out" to="~range"/>
+      <remap from="~beacon_out" to="~beacon"/>
 
       <param name="preprocessing" type="int" value="$(arg preprocessing)" />
       <param name="uav_name" type="string" value="$(arg UAV_NAME)" />

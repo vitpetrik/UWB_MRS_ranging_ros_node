@@ -20,14 +20,22 @@ find_package(catkin REQUIRED COMPONENTS
   mrs_lib
   roscpp
   std_msgs
+  sensor_msgs
+  tf2_eigen
+  message_generation
+  message_runtime
 )
 
-find_package(Protobuf REQUIRED)
-include_directories(${Protobuf_INCLUDE_DIRS})
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+add_message_files(DIRECTORY msg FILES
+  BeaconStamped.msg
+  Beacon.msg
+)
 
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS msg.proto)
-
+generate_messages(DEPENDENCIES
+  mrs_msgs
+  std_msgs
+  sensor_msgs
+  )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -120,7 +128,7 @@ protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS msg.proto)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS mrs_msgs mrs_lib mrs_serial roscpp std_msgs
+  CATKIN_DEPENDS mrs_msgs mrs_lib mrs_serial roscpp std_msgs message_runtime message_generation sensor_msgs
   LIBRARIES uwb_range
 )
 
@@ -163,7 +171,6 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
-  ${Protobuf_LIBRARIES}
 )
 
 #############

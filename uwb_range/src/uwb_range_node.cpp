@@ -11,6 +11,10 @@
 
 #include <ros/ros.h>
 #include <ros/package.h>
+#include <ros/serialization.h>
+
+#include <tf/tf.h>
+
 
 #include <math.h>
 #include <cmath>
@@ -19,6 +23,14 @@
 #include <mrs_msgs/RangeWithCovarianceArrayStamped.h>
 #include <mrs_modules_msgs/BacaProtocol.h>
 #include <mrs_msgs/RangeWithVar.h>
+
+#include <geometry_msgs/Point.h>
+#include <sensor_msgs/NavSatFix.h>
+#include <mrs_msgs/NavSatFixArrayStamped.h>
+#include <nav_msgs/Odometry.h>
+
+#include <uwb_range/BeaconStamped.h>
+#include <uwb_range/Beacon.h>
 
 #include <mrs_lib/param_loader.h>
 
@@ -43,18 +55,32 @@ namespace uwb
         param_loader.loadParam("enable_requests", this->enable_requests);
         param_loader.loadParam("output_frame", this->output_frame);
         param_loader.loadParam("variance", this->variance);
+        param_loader.loadParam("uav_name", this->uav_name);
+
+        this->beacon_msg.id = this->id;
+        this->beacon_msg.uav_name = this->uav_name;
+        this->beacon_msg.uav_type = 1;
+
+        this->beacon_msg.ALT = nan("");
+        this->beacon_msg.LAT = nan("");
+        this->beacon_msg.LON = nan("");
+        this->beacon_msg.heading = nan("");
 
         this->baca_write = nh.advertise<mrs_modules_msgs::BacaProtocol>("baca_out", 1);
         this->baca_read = nh.subscribe("baca_in", 10, &UwbRange::baca_read_cb, this);
 
+        this->gps_sub = nh.subscribe<sensor_msgs::NavSatFix>("gps_in", 10, &UwbRange::gps_cb, this);
+        this->odometry_sub = nh.subscribe<nav_msgs::Odometry>("odometry_in", 10, &UwbRange::odometry_cb, this);
+
         this->range_out = nh.advertise<mrs_msgs::RangeWithCovarianceArrayStamped>("range_out", 1);
+        this->beacon_out = nh.advertise<uwb_range::BeaconStamped>("beacon_out", 10, this);
 
         // choose random period for beacon timer
         // to prevent some unwanted synchronizations
 
         std::random_device rd;
         std::mt19937 e2(rd());
-        std::uniform_real_distribution<> beacon_period(1, 2);
+        std::uniform_real_distribution<> beacon_period(0.8, 1.2);
 
         this->beacon_timer = nh.createTimer(ros::Duration(beacon_period(e2)), &UwbRange::beacon_timer_cb, this);
         this->ping_timer = nh.createTimer(ros::Duration(1), &UwbRange::ping_timer_cb, this);
@@ -92,7 +118,7 @@ namespace uwb
      *
      * @param uwb_data  pointer to uwb_data_msg_t
      */
-    void UwbRange::handle_anchor_msg(struct uwb_data_msg_t &uwb_data)
+    void UwbRange::handle_anchor_msg(struct uwb_data_msg_t &uwb_data, ros::Time stamp)
     {
         struct anchor_msg_t anchor_msg;
         deserialize_anchor_msg(&anchor_msg, uwb_data.payload);
@@ -111,14 +137,23 @@ namespace uwb
      *
      * @param uwb_data  pointer to uwb_data_msg_t
      */
-    void UwbRange::handle_ros_msg(struct uwb_data_msg_t &uwb_data)
+    void UwbRange::handle_ros_msg(struct uwb_data_msg_t &uwb_data, ros::Time stamp)
     {
-        beacon::beacon_msg beacon;
-        beacon.ParseFromArray(uwb_data.payload, uwb_data.payload_size);
+        uwb_range::Beacon beacon_msg;
 
-        ROS_INFO("[UWB_RANGER]: Beacon RX from %s", beacon.uav_name().c_str());
+        ros::serialization::IStream stream(uwb_data.payload, uwb_data.payload_size);
+        ros::serialization::Serializer<uwb_range::Beacon>::read(stream, beacon_msg);
 
-        this->ARP_table[uwb_data.source_mac] = beacon.id();
+        ROS_INFO("[UWB_RANGER]: Beacon RX from %s", beacon_msg.uav_name.c_str());
+
+        this->ARP_table[uwb_data.source_mac] = beacon_msg.id;
+
+        uwb_range::BeaconStamped beacon_stamped;
+        beacon_stamped.beacon = beacon_msg;
+        beacon_stamped.header.stamp = stamp;
+        beacon_stamped.header.frame_id = this->uav_name + "/utm_origin";
+
+        this->beacon_out.publish(beacon_stamped);
 
         if (!enable_requests)
             return;
@@ -175,8 +210,8 @@ namespace uwb
             ROS_INFO_THROTTLE(0.5, "[UWB_RANGER]: Received RANGING_RESULT 0x%X | %.1f m | %f | %.1f dBm | %.1f dBm",
                               ranging_msg.source_mac,
                               ranging_msg.range,
-                              ranging_msg.variance, 
-                              ranging_msg.power_a, 
+                              ranging_msg.variance,
+                              ranging_msg.power_a,
                               ranging_msg.power_b);
 
             if (not this->ARP_table.count(ranging_msg.source_mac))
@@ -214,10 +249,10 @@ namespace uwb
             switch (msg.data.uwb_data_msg.msg_type)
             {
             case ANCHOR_TYPE:
-                handle_anchor_msg(msg.data.uwb_data_msg);
+                handle_anchor_msg(msg.data.uwb_data_msg, serial_msg.stamp);
                 break;
             case ROS_TYPE:
-                handle_ros_msg(msg.data.uwb_data_msg);
+                handle_ros_msg(msg.data.uwb_data_msg, serial_msg.stamp);
                 break;
             default:
                 break;
@@ -246,27 +281,31 @@ namespace uwb
      */
     void UwbRange::beacon_timer_cb(const ros::TimerEvent &)
     {
-        beacon::beacon_msg beacon;
         struct ros_msg_t msg;
         mrs_modules_msgs::BacaProtocol baca_out;
 
-        std::string uav_name;
-        this->nh.getParam("uav_name", uav_name);
+        if(ros::Time::now() - this->last_odom_time > ros::Duration(1))
+        {
+            this->beacon_msg.ALT = nan("");
+            this->beacon_msg.heading = nan("");
+        }
 
-        beacon.set_uav_name(uav_name);
-        beacon.set_uav_type(1);
-        beacon.set_id(this->id);
-        beacon.mutable_gps()->set_lat(49.7452934);
-        beacon.mutable_gps()->set_long_(14.0579293);
+        if(ros::Time::now() - this->last_gps_time > ros::Duration(1))
+        {
+            this->beacon_msg.LAT = nan("");
+            this->beacon_msg.LON = nan("");
+        }
+
+        uint32_t serial_size = ros::serialization::serializationLength(this->beacon_msg);
+        msg.data.uwb_data_msg.payload_size = serial_size;
+
+        ros::serialization::OStream stream(msg.data.uwb_data_msg.payload, serial_size);
+        ros::serialization::serialize(stream, this->beacon_msg);
 
         msg.address = TRX_DATA;
         msg.mode = 'w';
         msg.data.uwb_data_msg.destination_mac = 0xffff;
         msg.data.uwb_data_msg.msg_type = ROS_TYPE;
-
-        beacon.SerializeToArray(msg.data.uwb_data_msg.payload, sizeof(msg.data.uwb_data_msg.payload));
-
-        msg.data.uwb_data_msg.payload_size = beacon.ByteSizeLong();
 
         serialize_ros(&msg, baca_out);
         this->baca_write.publish(baca_out);
@@ -289,6 +328,45 @@ namespace uwb
 
         serialize_ros(&msg, baca_out);
         this->baca_write.publish(baca_out);
+    }
+
+    /**
+     * @brief Odometry topic callback
+     *
+     */
+    void UwbRange::odometry_cb(const nav_msgs::OdometryConstPtr &msg)
+    {
+        Eigen::Vector3d x = Eigen::Vector3d(1, 0, 0);
+        Eigen::Quaterniond quat = Eigen::Quaterniond(msg->pose.pose.orientation.w,
+                                                     msg->pose.pose.orientation.x,
+                                                     msg->pose.pose.orientation.y,
+                                                     msg->pose.pose.orientation.z);
+
+        x = quat * x;
+
+        this->beacon_msg.heading = atan2(x(1), x(0));
+        this->beacon_msg.ALT = msg->pose.pose.position.z;
+
+        this->last_odom_time = msg->header.stamp;
+
+        return;
+    }
+
+    /**
+     * @brief GPS topic callback
+     *
+     */
+    void UwbRange::gps_cb(const sensor_msgs::NavSatFixConstPtr &msg)
+    {
+        if(msg->status.status < 0)
+            return;
+
+        this->beacon_msg.LAT = msg->latitude;
+        this->beacon_msg.LON = msg->longitude;
+
+        this->last_gps_time = msg->header.stamp;
+
+        return;
     }
 }
 
